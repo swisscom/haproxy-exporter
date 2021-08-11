@@ -15,6 +15,9 @@ VPATH= $(BUILD_DIR)
 build: haproxy-exporter.go $$(call rwildcard, ./cmd, *.go) $$(call rwildcard, ./core, *.go)
 	$(CC) $(DFLAGS) $(CFLAGS) -o $(BUILD_DIR)/haproxy-exporter haproxy-exporter.go
 
+build-linux:
+	CGO_ENABLED=0 $(CROSS) $(CC) $(CFLAGS) -o $(BUILD_DIR)/haproxy-exporter_linux-amd64 ./
+
 .PHONY: release
 release: haproxy-exporter.go $$(call rwildcard, ./cmd, *.go) $$(call rwildcard, ./core, *.go)
 	$(CC) $(CFLAGS) -o $(BUILD_DIR)/haproxy-exporter haproxy-exporter.go
