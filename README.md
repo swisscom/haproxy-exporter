@@ -1,18 +1,24 @@
 # HAProxy-Exporter - HAProxy stats to Prometheus Metrics
-[![Build Status](https://travis-ci.org/ovh/haproxy-exporter.svg?branch=master)](https://travis-ci.org/ovh/haproxy-exporter)
 
-HAProxy-Exporter scrapes HAProxy stats and expose them as a Prometheus metrics endpoint.
+## Description
+
+A fork of OVH's [HAProxy-Exporter](https://github.com/ovh/haproxy-exporter/) meant to be used
+with [Prometheus](https://prometheus.io/).
+
+## Introduction
+
+HAProxy-Exporter scrapes HAProxy stats and expose them as a Prometheus metrics endpoint (`/metrics`).
 
 HAProxy-Exporter features:
  - **Simple**: HAProxy-Exporter fetch stats through HTTP endpoint or Unix socket.
  - **Highly scalable**: HAProxy-Exporter can export stats of thousands HAProxy.
- - **Pluggable**: Export your metrics via [Beamium](https://github.com/ovh/beamium).
  - **Versatile**: HAProxy-Exporter can flush metrics to files.
 
 ## Status
 
-HAProxy-Exporter is currently used at [OVH](https://www.ovh.com) to monitor thousands of HAProxy instances.
-Do not worry about scalability ;)
+The [original HAProxy-Exporter](https://github.com/ovh/haproxy-exporter) 
+is used at [OVH](https://www.ovh.com) to monitor thousands of HAProxy instances.
+
 
 ## Datapoints
 
@@ -141,6 +147,7 @@ Instructions on how to contribute to HAProxy-Exporter are available on the [Cont
 
 ## Get in touch
 
-- Twitter: [@notd33d33](https://twitter.com/notd33d33)
+- This fork's maintainer: [@denysvitali](htttps://github.com/denysvitali)
+- Original Author: [Kevin Georges, @d33d33](https://github.com/d33d33)
 
 [Contributing]: CONTRIBUTING.md
