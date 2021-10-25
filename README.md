@@ -1,7 +1,7 @@
-# HAProxy-Exporter - HAProxy stats to Sensision Metrics
+# HAProxy-Exporter - HAProxy stats to Prometheus Metrics
 [![Build Status](https://travis-ci.org/ovh/haproxy-exporter.svg?branch=master)](https://travis-ci.org/ovh/haproxy-exporter)
 
-HAProxy-Exporter scrapes HAProxy stats and expose them as a Sensision HTTP endpoint.
+HAProxy-Exporter scrapes HAProxy stats and expose them as a Prometheus metrics endpoint.
 
 HAProxy-Exporter features:
  - **Simple**: HAProxy-Exporter fetch stats through HTTP endpoint or Unix socket.
@@ -17,8 +17,8 @@ Do not worry about scalability ;)
 ## Datapoints
 
 HAProxy-Exporter will automatically collect all metrics exposed by HAProxy on its
-control socket, including all frontends, bachends and individual servers. To help
-classify these metrics, HAProxy-Exporter will name is ``haproxy.stats.[METRIC_NAME]`` and
+control socket, including all frontends, backends and individual servers. To help
+classify these metrics, HAProxy-Exporter will name is ``haproxy_stats_[METRIC_NAME]`` and
 automatically insert a timestamp with a resolution of a micro-second as well as 3 labels:
 
 - *``pxname``*: Proxy name. This is the string after ``frontend``, ``backend`` and ``listen`` keywords in you HAProxy configuration.
@@ -29,14 +29,14 @@ Additional labels may be configured in the documentation. See below.
 
 *Sample metrics*
 ```
-1483065169580915// haproxy.stats.eresp{pxname=80,svname=BACKEND,type=backend} 41297
-1483065169580915// haproxy.stats.cli_abrt{pxname=80,svname=BACKEND,type=backend} 1251859
-1483065169580915// haproxy.stats.bout{pxname=80,svname=BACKEND,type=backend} 553018374845
-1483065169580915// haproxy.stats.scur{pxname=80,svname=BACKEND,type=backend} 764
-1483065169580915// haproxy.stats.dreq{pxname=80,svname=BACKEND,type=backend} 0
+haproxy_stats_eresp{pxname="80",svname="BACKEND",type="backend"} 41297
+haproxy_stats_cli_abrt{pxname="80",svname="BACKEND",type="backend"} 1251859
+haproxy_stats_bout{pxname="80",svname="BACKEND",type="backend"} 553018374845
+haproxy_stats_scur{pxname="80",svname="BACKEND",type="backend"} 764
+haproxy_stats_dreq{pxname="80",svname="BACKEND",type="backend"} 0
 ```
 
-For more informations, please see HaProxy Managment Guide: http://cbonte.github.io/haproxy-dconv/1.7/management.html#9.1
+For more information, please see HaProxy Management Guide: http://cbonte.github.io/haproxy-dconv/1.7/management.html#9.1
 
 ## Building
 
@@ -68,7 +68,7 @@ Configuration is load and override in the following order:
 Config is composed of three main parts and some config fields:
 
 #### Sources
-HAProxy-Exporter can have one to many HAProxy stats sources. A *source* is defined as follow:
+HAProxy-Exporter can have one to many HAProxy stats sources. A *source* is defined as follows:
 ``` yaml
 sources: # Sources definitions
   - uri: http://localhost/haproxy?stats;csv # HTTP stats uri

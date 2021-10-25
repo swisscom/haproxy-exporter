@@ -17,7 +17,7 @@ type Beamer struct {
 	labels string
 
 	scrapeCounter  int64
-	scrapeSkiped   int64
+	scrapeSkipped  int64
 	scrapeFailures int64
 }
 
@@ -43,7 +43,6 @@ func NewBeamer(exporters []*Exporter, labels map[string]string) *Beamer {
 						}()
 						e := exporters[i]
 						success := e.Scrape()
-
 						b.mutex.Lock()
 
 						if !success {
@@ -60,7 +59,7 @@ func NewBeamer(exporters []*Exporter, labels map[string]string) *Beamer {
 					}
 				default:
 					b.mutex.Lock()
-					b.scrapeSkiped++
+					b.scrapeSkipped++
 					b.mutex.Unlock()
 				}
 			}
@@ -84,10 +83,10 @@ func (b *Beamer) Metrics() *bytes.Buffer {
 
 	var buf bytes.Buffer
 
-	head := fmt.Sprintf("%v// haproxy.exporter.", time.Now().UnixNano()/1000)
+	head := fmt.Sprintf("haproxy_exporter_")
 
 	buf.WriteString(fmt.Sprintf("%vscrape{%v} %v\n", head, b.labels, b.scrapeCounter))
-	buf.WriteString(fmt.Sprintf("%vscrape_skiped{%v} %v\n", head, b.labels, b.scrapeSkiped))
+	buf.WriteString(fmt.Sprintf("%vscrape_skipped{%v} %v\n", head, b.labels, b.scrapeSkipped))
 	buf.WriteString(fmt.Sprintf("%vscrape_failures{%v} %v\n", head, b.labels, b.scrapeFailures))
 
 	return &buf

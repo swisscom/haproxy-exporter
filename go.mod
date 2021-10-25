@@ -3,7 +3,7 @@ module github.com/ovh/haproxy-exporter
 go 1.16
 
 require (
-	github.com/davecgh/go-spew v1.1.1 // indirect
+	github.com/alexflint/go-arg v1.4.2
 	github.com/fsnotify/fsnotify v1.4.3-0.20161026203122-fd9ec7deca8b // indirect
 	github.com/gwenn/yacr v0.0.0-20161202193809-67f7471b9d0a
 	github.com/hashicorp/hcl v0.0.0-20161201141704-37ab263305aa // indirect

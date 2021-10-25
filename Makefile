@@ -2,35 +2,44 @@ AGENTS=api scheduler aggregator worker
 BUILD_DIR=build
 
 CC=go build
-GITHASH=$(shell git rev-parse HEAD)
+GIT_HASH=$(shell git rev-parse HEAD)
 DFLAGS=-race
-CFLAGS=-ldflags "-X github.com/ovh/haproxy-exporter/cmd.githash=$(GITHASH)"
+CFLAGS=-ldflags "-X main.gitHash=$(GIT_HASH)"
 CROSS=GOOS=linux GOARCH=amd64
 
-rwildcard=$(foreach d,$(wildcard $1*),$(call rwildcard,$d/,$2) $(filter $(subst *,%,$2),$d))
 VPATH= $(BUILD_DIR)
 
 .SECONDEXPANSION:
 
-build: haproxy-exporter.go $$(call rwildcard, ./cmd, *.go) $$(call rwildcard, ./core, *.go)
-	$(CC) $(DFLAGS) $(CFLAGS) -o $(BUILD_DIR)/haproxy-exporter haproxy-exporter.go
+.PHONY: build
+build:
+	go build $(DFLAGS) $(CFLAGS) -o $(BUILD_DIR)/haproxy-exporter ./cmd/haproxy-exporter
+
+build-all: build-linux-amd64 build-darwin-amd64 build-windows-amd64
 
 build-linux-amd64:
 	GOOS=linux GOARCH=amd64 make build-target
 
+build-haproxy-stat-linux-amd64:
+	GOOS=linux GOARCH=amd64 make build-haproxy-stat-target
+
 build-darwin-amd64:
 	GOOS=darwin GOARCH=amd64 make build-target
 
+build-windows-amd64:
+	GOOS=windows GOARCH=amd64 BIN_EXT=.exe make build-target
+
 build-target:
-	CGO_ENABLED=0 GOOS=$(GOOS) GOARCH=$(GOARCH) $(CC) $(CFLAGS) -o $(BUILD_DIR)/haproxy-exporter_$(GOOS)-$(GOARCH) ./
+	CGO_ENABLED=0 GOOS=$(GOOS) GOARCH=$(GOARCH) $(CC) $(CFLAGS) \
+	-o $(BUILD_DIR)/haproxy-exporter_$(GOOS)-$(GOARCH)$(BIN_EXT) ./cmd/haproxy-exporter
+
+build-haproxy-stat-target:
+	CGO_ENABLED=0 GOOS=$(GOOS) GOARCH=$(GOARCH) $(CC) $(CFLAGS) \
+	-o $(BUILD_DIR)/haproxy-stat_$(GOOS)-$(GOARCH)$(BIN_EXT) ./cmd/haproxy-stat
 
 .PHONY: release
-release: haproxy-exporter.go $$(call rwildcard, ./cmd, *.go) $$(call rwildcard, ./core, *.go)
+release:
 	$(CC) $(CFLAGS) -o $(BUILD_DIR)/haproxy-exporter haproxy-exporter.go
-
-.PHONY: dist
-dist: haproxy-exporter.go $(MODULES_PATH)
-	$(CROSS) $(CC) $(CFLAGS) -ldflags "-s -w" -o $(BUILD_DIR)/haproxy-exporter haproxy-exporter.go
 
 .PHONY: lint
 lint:

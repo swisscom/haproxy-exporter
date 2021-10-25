@@ -2,6 +2,10 @@ package core
 
 import (
 	"bytes"
+	"github.com/gwenn/yacr"
+	"io/ioutil"
+	"strconv"
+
 	// "encoding/csv"
 	"errors"
 	"fmt"
@@ -12,13 +16,11 @@ import (
 	"sync"
 	"time"
 
-	"github.com/gwenn/yacr"
-
 	log "github.com/sirupsen/logrus"
 )
 
 const (
-	rowLength = 62
+	columns = 62
 )
 
 // Exporter collects HAProxy stats from the given URI and exports them as
@@ -28,9 +30,9 @@ type Exporter struct {
 	mutex sync.RWMutex
 	fetch func() (io.ReadCloser, error)
 
-	metrics   map[int]string
-	sensision bytes.Buffer
-	labels    string
+	metrics          map[int]string
+	prometheusBuffer bytes.Buffer
+	labels           string
 }
 
 // NewExporter returns an initialized Exporter.
@@ -157,7 +159,7 @@ func (e *Exporter) Unlock() {
 
 // Metrics delivers HAProxy stats as warp10 metrics.
 func (e *Exporter) Metrics() *bytes.Buffer {
-	return &e.sensision
+	return &e.prometheusBuffer
 }
 
 func fetchHTTP(uri string, timeout time.Duration) func() (io.ReadCloser, error) {
@@ -177,6 +179,20 @@ func fetchHTTP(uri string, timeout time.Duration) func() (io.ReadCloser, error) 
 		}
 		return resp.Body, nil
 	}
+}
+
+func UnixToString(url *url.URL, timeout time.Duration) (string, error) {
+	r, err := fetchUnix(url, timeout)()
+	if err != nil {
+		return "", err
+	}
+
+	buffer, err := ioutil.ReadAll(r)
+	if err != nil {
+		return "", err
+	}
+
+	return string(buffer), nil
 }
 
 func fetchUnix(u *url.URL, timeout time.Duration) func() (io.ReadCloser, error) {
@@ -203,13 +219,13 @@ func fetchUnix(u *url.URL, timeout time.Duration) func() (io.ReadCloser, error) 
 	}
 }
 
-// Scrape retrive HAProxy data
+// Scrape retrieves HAProxy data
 func (e *Exporter) Scrape() bool {
 	body, err := e.fetch()
 
 	e.mutex.Lock()
 	defer e.mutex.Unlock()
-	e.sensision.Reset()
+	e.prometheusBuffer.Reset()
 
 	if err != nil {
 		log.WithFields(log.Fields{
@@ -219,15 +235,18 @@ func (e *Exporter) Scrape() bool {
 		return false
 	}
 	defer body.Close()
+	return e.ParseCSV(body)
+}
 
-	now := fmt.Sprintf("%v// haproxy.stats.", time.Now().UnixNano()/1000)
+func (e *Exporter) ParseCSV(body io.ReadCloser) bool {
+	now := fmt.Sprintf("haproxy_stats_")
 
 	r := yacr.DefaultReader(body)
-	r.SkipRecords(1) // first line is comment
+	_ = r.SkipRecords(1) // first line is comment
 
 	// Build sparse value array
-	values := make([]*string, rowLength)
-	for i := 0; i < rowLength; i++ {
+	values := make([]*string, columns)
+	for i := 0; i < columns; i++ {
 		if e.metrics[i] == "" && i != 0 && i != 1 && i != 32 {
 			continue
 		}
@@ -237,8 +256,12 @@ func (e *Exporter) Scrape() bool {
 
 	var i = 0
 	for r.Scan() {
-		if i < rowLength && values[i] != nil {
-			r.Value(values[i])
+		if i < columns && values[i] != nil {
+			err := r.Value(values[i])
+			if err != nil {
+				log.Errorf("unable to read value: %v", err)
+				return false
+			}
 		}
 
 		if r.EndOfRecord() {
@@ -250,6 +273,9 @@ func (e *Exporter) Scrape() bool {
 				}
 
 				value := *valueStr
+
+				pxName := *values[0]
+				svName := *values[1]
 				if fieldIdx == 17 { // status field
 					switch *valueStr {
 					case "UP", "UP 1/3", "UP 2/3", "OPEN", "no check":
@@ -273,13 +299,22 @@ func (e *Exporter) Scrape() bool {
 					t = "listen"
 				}
 
-				gts := now + e.metrics[fieldIdx] + "{" + e.labels + "pxname=" + *values[0] + ",svname=" + *values[1] + ",type=" + t + "} "
-				if fieldIdx == 36 || fieldIdx == 37 || fieldIdx == 56 {
-					gts += "'" + value + "'\n"
-				} else {
-					gts += value + "\n"
+				_, err := strconv.ParseFloat(value, 64)
+				if err != nil {
+					continue
 				}
-				_, err := e.sensision.WriteString(gts)
+
+				gts := fmt.Sprintf("%s%s{%spxname=\"%s\", svname=\"%s\", type=\"%s\"} ",
+					now,
+					e.metrics[fieldIdx],
+					e.labels,
+					svName,
+					pxName,
+					t,
+				)
+
+				gts += value + "\n"
+				_, err = e.prometheusBuffer.WriteString(gts)
 				if err != nil {
 					log.WithFields(log.Fields{
 						"uri":   e.URI,
@@ -298,6 +333,5 @@ func (e *Exporter) Scrape() bool {
 			"error": err,
 		}).Error("Parse failed")
 	}
-
 	return true
 }

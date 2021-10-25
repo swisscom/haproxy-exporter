@@ -1,4 +1,4 @@
-package cmd
+package main
 
 import (
 	"fmt"
@@ -136,15 +136,15 @@ var RootCmd = &cobra.Command{
 
 		// Setup http
 		http.Handle("/metrics", http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
-			w.Write(b.Metrics().Bytes())
+			_, _ = w.Write(b.Metrics().Bytes())
 			for _, e := range exporters {
 				e.Lock()
-				w.Write(e.Metrics().Bytes())
+				_, _ = w.Write(e.Metrics().Bytes())
 				e.Unlock()
 			}
 		}))
 		http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-			w.Write([]byte(`<html>
+			_, _ = w.Write([]byte(`<html>
 	             <head><title>Haproxy Exporter</title></head>
 	             <body>
 	             <h1>Haproxy Exporter</h1>
@@ -220,7 +220,7 @@ func parseSource(s Source) error {
 		pattern: rg,
 	}
 
-	// Load sources from matchimg files
+	// Load sources from matching files
 	err = filepath.Walk(filepath.Dir(s.Include), w.walkSource)
 	if err != nil {
 		return err
@@ -244,19 +244,19 @@ func (s *sourceWalker) walkSource(path string, info os.FileInfo, err error) erro
 	}
 
 	// Parse source file
-	var srcs []Source
+	var sources []Source
 	data, err := ioutil.ReadFile(path)
 	if err != nil {
 		return err
 	}
-	err = yaml.Unmarshal([]byte(data), &srcs)
+	err = yaml.Unmarshal([]byte(data), &sources)
 	if err != nil {
 		return fmt.Errorf("%s should contain an array of source", path)
 	}
 
 	// Process each source
-	for i := range srcs {
-		err := parseSource(srcs[i])
+	for i := range sources {
+		err := parseSource(sources[i])
 		if err != nil {
 			return err
 		}

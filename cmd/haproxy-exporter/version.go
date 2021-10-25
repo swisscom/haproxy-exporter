@@ -1,4 +1,4 @@
-package cmd
+package main
 
 import (
 	"fmt"
@@ -8,7 +8,7 @@ import (
 
 var (
 	version = "1.4.2"
-	githash = "HEAD"
+	gitHash = "HEAD"
 )
 
 func init() {
@@ -19,6 +19,6 @@ var versionCmd = &cobra.Command{
 	Use:   "version",
 	Short: "Print the version number",
 	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Printf("haproxy-exporter %s (%s)\n", version, githash)
+		fmt.Printf("haproxy-exporter %s (%s)\n", version, gitHash)
 	},
 }
