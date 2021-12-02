@@ -1,4 +1,4 @@
-module github.com/ovh/haproxy-exporter
+module github.com/swisscom/haproxy-exporter
 
 go 1.16
 
