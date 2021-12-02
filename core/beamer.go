@@ -41,6 +41,10 @@ func NewBeamer(exporters []*Exporter, labels map[string]string) *Beamer {
 						defer func() {
 							<-running
 						}()
+						if len(exporters) < i+1 {
+							// Invalid exporter
+							return
+						}
 						e := exporters[i]
 						success := e.Scrape()
 						b.mutex.Lock()
