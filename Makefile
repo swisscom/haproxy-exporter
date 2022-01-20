@@ -4,9 +4,9 @@ BUILD_DIR=build
 CC=go build
 GIT_HASH=$(shell git rev-parse HEAD)
 DFLAGS=-race
-CFLAGS=-ldflags "-X main.gitHash=$(GIT_HASH)"
+GIT_VERSION=$(shell git describe --always --dirty --tags)
+CFLAGS=-ldflags "-X main.gitHash=$(GIT_HASH) -X main.gitVersion=$(GIT_VERSION)"
 CROSS=GOOS=linux GOARCH=amd64
-
 VPATH= $(BUILD_DIR)
 
 .SECONDEXPANSION:
