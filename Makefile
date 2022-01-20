@@ -31,15 +31,11 @@ build-windows-amd64:
 
 build-target:
 	CGO_ENABLED=0 GOOS=$(GOOS) GOARCH=$(GOARCH) $(CC) $(CFLAGS) \
-	-o $(BUILD_DIR)/haproxy-exporter_$(GOOS)-$(GOARCH)$(BIN_EXT) ./cmd/haproxy-exporter
+	-o $(BUILD_DIR)/haproxy-exporter-$(GIT_VERSION)_$(GOOS)-$(GOARCH)$(BIN_EXT) ./cmd/haproxy-exporter
 
 build-haproxy-stat-target:
 	CGO_ENABLED=0 GOOS=$(GOOS) GOARCH=$(GOARCH) $(CC) $(CFLAGS) \
-	-o $(BUILD_DIR)/haproxy-stat_$(GOOS)-$(GOARCH)$(BIN_EXT) ./cmd/haproxy-stat
-
-.PHONY: release
-release:
-	$(CC) $(CFLAGS) -o $(BUILD_DIR)/haproxy-exporter haproxy-exporter.go
+	-o $(BUILD_DIR)/haproxy-exporter-$(GIT_VERSION)_$(GOOS)-$(GOARCH)$(BIN_EXT) ./cmd/haproxy-stat
 
 .PHONY: lint
 lint:
