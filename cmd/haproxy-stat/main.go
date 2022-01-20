@@ -3,8 +3,8 @@ package main
 import (
 	"fmt"
 	"github.com/alexflint/go-arg"
-	"github.com/ovh/haproxy-exporter/core"
 	"github.com/sirupsen/logrus"
+	"github.com/swisscom/haproxy-exporter/core"
 	"net/url"
 	"time"
 )
