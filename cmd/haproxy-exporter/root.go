@@ -9,13 +9,13 @@ import (
 	"regexp"
 	"time"
 
-	yaml "gopkg.in/yaml.v2"
+	"gopkg.in/yaml.v2"
 
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 
-	"github.com/ovh/haproxy-exporter/core"
+	"github.com/swisscom/haproxy-exporter/core"
 )
 
 var cfgFile string
